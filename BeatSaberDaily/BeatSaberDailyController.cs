@@ -9,6 +9,14 @@ using UnityEngine;
 using System.IO;
 using BS_Utils.Utilities;
 
+using BeatSaberMarkupLanguage;
+using BeatSaberMarkupLanguage.FloatingScreen;
+using BeatSaberDaily.UI.ViewController;
+using BeatSaberDaily.Util;
+using UnityEngine.UI;
+
+using UnityEngine.SceneManagement;
+
 namespace BeatSaberDaily
 {
     /// <summary>
@@ -17,123 +25,19 @@ namespace BeatSaberDaily
     /// </summary>
     /// 
 
-    public static class DailyData
+    public static class Log
     {
-        static List<PlayData> playData = new List<PlayData>();
-
-        static PlayData nowPlayData;
-
-        // Add/Delete/Read/Write
-        public static void Init()
+        public static void Write(String text)
         {
-            nowPlayData = new PlayData();
-        }
-        static public void Update()
-        {
-            playData.Add(nowPlayData);
-            nowPlayData = new PlayData();
-        }
-
-        // PlayData Interface
-        public static void NoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplier)
-        {
-            nowPlayData.NoteWasCut(noteData, noteCutInfo, multiplier);
-        }
-
-        public static void NoteWasMissed(NoteData noteData, int multiplier)
-        {
-            nowPlayData.NoteWasMissed(noteData, multiplier);
-        }
-
-        public static void WritePlayData(String filepath)
-        {
-            nowPlayData.WritePlayData(filepath);
+            Logger.log.Error(text);
         }
     }
-
-    public class PlayData
-    {
-        List<int> goodcut = new List<int>();
-        List<int> badcut = new List<int>();
-        List<int> missed = new List<int>();
-        int cutCount = 0;
-
-        const int COUNT_MAX = 20; //Must to be DI
-
-        // NoteCut
-
-        public void NoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplier)
-        {
-            bool isNotNote = noteData.noteType != NoteType.NoteA && noteData.noteType != NoteType.NoteB;
-            if (isNotNote) return;
-
-            int index = cutCount / COUNT_MAX;
-            bool flag2 = cutCount % COUNT_MAX == 0;
-            if (flag2)
-            {
-                goodcut.Add(0);
-                badcut.Add(0);
-                missed.Add(0);
-            }
-
-            bool allIsOK = noteCutInfo.allIsOK;
-            if (allIsOK)
-            {
-                int count = goodcut[index];
-                goodcut[index] = count + 1;
-            }
-            else
-            {
-                int count2 = badcut[index];
-                badcut[index] = count2 + 1;
-            }
-            cutCount++;
-        }
-
-        public void NoteWasMissed(NoteData noteData, int multiplier)
-        {
-        bool isNotNote = noteData.noteType != NoteType.NoteA && noteData.noteType != NoteType.NoteB;
-        if (isNotNote) return;
-
-            int index = cutCount / COUNT_MAX;
-            bool flag2 = cutCount % COUNT_MAX == 0;
-            if (flag2)
-            {
-                goodcut.Add(0);
-                badcut.Add(0);
-                missed.Add(0);
-            }
-            int count = missed[index];
-            missed[index] = count + 1;
-            cutCount++;
-        }
-        
-        public void WritePlayData(String filepath)
-        {
-            StreamWriter file = new StreamWriter(filepath, false, Encoding.UTF8);
-            Logger.log.Error("LevelClearEvent");
-            for (int i = 0; i < goodcut.Count; i++)
-            {
-                Logger.log.Error("[ good cut ] = " + goodcut[i].ToString());
-                Logger.log.Error("[  bad cut ] = " + badcut[i].ToString());
-                Logger.log.Error("[   missed ] = " + missed[i].ToString());
-                file.WriteLine(string.Concat(new string[]
-                {
-                goodcut[i].ToString(),
-                ",",
-                badcut[i].ToString(),
-                ",",
-                missed[i].ToString()
-                }));
-            }
-            file.Close();
-        }
-    }
-
 
     public class BeatSaberDailyController : MonoBehaviour
     {
         public static BeatSaberDailyController instance { get; private set; }
+
+        static FloatingScreen floatingScreenForScore;
 
         #region Monobehaviour Messages
         /// <summary>
@@ -158,26 +62,70 @@ namespace BeatSaberDaily
             BSEvents.levelFailed += LevelClearEvent;
             BSEvents.noteWasCut += HandleScoreControllerNoteWasCut;
             BSEvents.noteWasMissed += HandleScoreControllerNoteWasMissed;
-            Logger.log.Error("Stats OnLoad");
+
+            BSEvents.lateMenuSceneLoadedFresh += SetGoodRateChart;
+
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+            Log.Write("Stats OnLoad");
         }
 
-        private static void HandleScoreControllerNoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplier)
+        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+        {
+            Log.Write("Scene Loaded Name = " + arg0.name);
+        }
+
+        private void HandleScoreControllerNoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplier)
         {
             DailyData.NoteWasCut(noteData, noteCutInfo, multiplier);
         }
 
-        public void HandleScoreControllerNoteWasMissed(NoteData noteData, int multiplier)
+        private void HandleScoreControllerNoteWasMissed(NoteData noteData, int multiplier)
         {
             DailyData.NoteWasMissed(noteData, multiplier);
         }
 
-        private static void LevelClearEvent(StandardLevelScenesTransitionSetupDataSO data, LevelCompletionResults result)
+        private void LevelClearEvent(StandardLevelScenesTransitionSetupDataSO data, LevelCompletionResults result)
         {
             String filepath = "D:/BeatSaberMod/record.csv";
 
             DailyData.WritePlayData(filepath);
 
             DailyData.Update();
+
+            List<Vector2> goodGraph = DailyData.GetLastGoodRateGraphPoint();
+            Log.Write("LevelClearEvent goodGraph Count = " + goodGraph.Count.ToString());
+
+            floatingScreenForScore.rootViewController.gameObject.SetActive(true);
+            floatingScreenForScore.GetComponent<GraphContainer>().Draw(DailyData.GetLastGoodRateGraphPoint());
+        }
+
+        private void SetGoodRateChart(ScenesTransitionSetupDataSO data)
+        {
+            new UnityTask(SetFloatingDisplay());
+        }
+
+        private static IEnumerator SetFloatingDisplay()
+        {
+            yield return new WaitForEndOfFrame();
+
+            Log.Write("SetFloatingDisplay Start");
+
+            Vector3 ChartStandardLevelPosition = new Vector3(0, 0.25f, 2.25f); /* Original: 0, -0.4, 2.25 */
+            Vector3 ChartStandardLevelRotation = new Vector3(35, 0, 0);
+
+            var pos = ChartStandardLevelPosition;
+            var rot = Quaternion.Euler(ChartStandardLevelRotation);
+            floatingScreenForScore = FloatingScreen.CreateFloatingScreen(new Vector2(105, 65), false, pos, rot);
+
+
+            floatingScreenForScore.SetRootViewController(BeatSaberUI.CreateViewController<GoodRateViewController>(), true);
+
+            Image image = floatingScreenForScore.GetComponent<Image>();
+            image.enabled = false;
+
+            floatingScreenForScore.gameObject.AddComponent<GraphContainer>();
+
+            floatingScreenForScore.rootViewController.gameObject.SetActive(false);
         }
 
         /// <summary>
