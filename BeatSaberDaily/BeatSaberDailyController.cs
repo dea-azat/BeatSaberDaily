@@ -86,6 +86,17 @@ namespace BeatSaberDaily
 
         private void LevelClearEvent(StandardLevelScenesTransitionSetupDataSO data, LevelCompletionResults result)
         {
+
+            var _mainGameSceneSetupData = BS_Utils.Plugin.LevelData;
+            var _beatmapData = _mainGameSceneSetupData?.GameplayCoreSceneSetupData?.difficultyBeatmap?.beatmapData;
+
+            if (_beatmapData != null)
+            {
+                var songDuration = _mainGameSceneSetupData?.GameplayCoreSceneSetupData?.difficultyBeatmap?.level?.beatmapLevelData?.audioClip?.length ?? -1f;
+                var songName = _mainGameSceneSetupData.GameplayCoreSceneSetupData.difficultyBeatmap.level.songName;
+                DailyData.LevelCleared(songName, songDuration);
+            }
+
             String filepath = "D:/BeatSaberMod/record.csv";
 
             DailyData.WritePlayData(filepath);

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using UnityEngine;
 using System.IO;
+using UnityEngine.PlayerLoop;
 
 namespace BeatSaberDaily
 {
@@ -45,6 +46,11 @@ namespace BeatSaberDaily
             nowPlayData.WritePlayData(filepath);
         }
 
+        public static void LevelCleared(String songName, float songDuration)
+        {
+            nowPlayData.LevelCleared(songName, songDuration);
+        }
+
         public static List<Vector2> GetLastGoodRateGraphPoint()
         {
             return lastPlayData.GetGoodRateGraphPoint();
@@ -58,6 +64,7 @@ namespace BeatSaberDaily
         int missed;
 
         float startTime;
+        float endTime;
 
         public SectionData(float time)
         {
@@ -81,6 +88,11 @@ namespace BeatSaberDaily
             missed++;
         }
 
+        public void SetEndTime(float _endTime)
+        {
+            endTime = _endTime;
+        }
+
         public String Data2Text()
         {
             Logger.log.Error("[     time ] = " + startTime.ToString());
@@ -89,11 +101,15 @@ namespace BeatSaberDaily
             Logger.log.Error("[   missed ] = " + missed.ToString());
             String txt = string.Concat(new string[]
             {
+                startTime.ToString(),
+                ",",
+                endTime.ToString(),
+                ",",
                 goodcut.ToString(),
                 ",",
                 badcut.ToString(),
                 ",",
-                missed.ToString()
+                missed.ToString(),
             });
 
             return txt;
@@ -103,7 +119,7 @@ namespace BeatSaberDaily
         {
             Vector2 vec = new Vector2();
 
-            vec.x = startTime;
+            vec.x = endTime;
             vec.y = (float)goodcut / (float)(goodcut + badcut + missed);
 
             return vec;
@@ -112,24 +128,40 @@ namespace BeatSaberDaily
 
     public class PlayData
     {
+        String songName;
+
         List<SectionData> sectionData = new List<SectionData>();
+        
         int cutCount = 0;
 
         const int COUNT_MAX = 20; //Must to be DI
 
         // NoteCut
+        private void UpdateSectionData(float time)
+        {
+            int index = cutCount / COUNT_MAX;
+            if (cutCount % COUNT_MAX == 0)
+            {
+                if (cutCount == 0)
+                {
+                    sectionData.Add(new SectionData(0));
+                }
+                else
+                {
+                    sectionData[index - 1].SetEndTime(time);
+                    sectionData.Add(new SectionData(time));
+                }
+            }
+        }
 
         public void NoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplier)
         {
             bool isNotNote = noteData.noteType != NoteType.NoteA && noteData.noteType != NoteType.NoteB;
             if (isNotNote) return;
 
-            int index = cutCount / COUNT_MAX;
-            if (cutCount % COUNT_MAX == 0)
-            {
-                sectionData.Add(new SectionData(noteData.time));
-            }
+            UpdateSectionData(noteData.time);
 
+            int index = cutCount / COUNT_MAX;
             bool allIsOK = noteCutInfo.allIsOK;
             if (allIsOK)
             {
@@ -147,20 +179,18 @@ namespace BeatSaberDaily
             bool isNotNote = noteData.noteType != NoteType.NoteA && noteData.noteType != NoteType.NoteB;
             if (isNotNote) return;
 
-            int index = cutCount / COUNT_MAX;
-            if (cutCount % COUNT_MAX == 0)
-            {
-                sectionData.Add(new SectionData(noteData.time));
-            }
+            UpdateSectionData(noteData.time);
 
+            int index = cutCount / COUNT_MAX;
             sectionData[index].InclementMissed();
             cutCount++;
         }
 
         public void WritePlayData(String filepath)
         {
-            StreamWriter file = new StreamWriter(filepath, false, Encoding.UTF8);
+            StreamWriter file = new StreamWriter(filepath, true, Encoding.UTF8);
             Logger.log.Error("LevelClearEvent");
+            file.WriteLine(songName);
             foreach (SectionData sd in sectionData)
             {
                 String txt = sd.Data2Text();
@@ -169,9 +199,17 @@ namespace BeatSaberDaily
             file.Close();
         }
 
+        public void LevelCleared(String _songName, float songDuration)
+        {
+            songName = _songName;
+            sectionData[cutCount / COUNT_MAX].SetEndTime(songDuration);
+        }
+
         public List<Vector2> GetGoodRateGraphPoint()
         {
             List<Vector2> vec = new List<Vector2>();
+
+            vec.Add(new Vector2(0f, 1f));
 
             foreach (SectionData sd in sectionData)
             {
