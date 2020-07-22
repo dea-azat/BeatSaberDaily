@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace BeatSaberDaily
+namespace BeatSaberDialy
 {
     class GraphContainer : MonoBehaviour
     {
@@ -30,7 +30,7 @@ namespace BeatSaberDaily
             winGraph.circleSprite = sprite;
             winGraph.transform.localScale /= 10;
 
-            List<Vector2> goodGraph = DailyData.GetLastGoodRateGraphPoint();
+            List<Vector2> goodGraph = DialyData.GetLastGoodRateGraphPoint();
             Log.Write("GraphContainer goodGraph Count = " + goodGraph.Count.ToString());
             if ( goodGraph.Count > 0)
             {

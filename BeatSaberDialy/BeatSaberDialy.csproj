@@ -111,12 +111,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BeatSaberDialyController.cs" />
+    <Compile Include="DialyData.cs" />
     <Compile Include="DrawGraph.cs" />
-    <Compile Include="DailyData.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
-    <Compile Include="BeatSaberDailyController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\ViewController\GoodRateViewController.cs" />
     <Compile Include="Util\TaskManager.cs" />

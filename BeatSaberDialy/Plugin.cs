@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine;
 using IPALogger = IPA.Logging.Logger;
 
-namespace BeatSaberDaily
+namespace BeatSaberDialy
 {
 
     [Plugin(RuntimeOptions.SingleStartInit)]
@@ -47,7 +47,7 @@ namespace BeatSaberDaily
         public void OnApplicationStart()
         {
             Logger.log.Debug("OnApplicationStart");
-            new GameObject("BeatSaberDailyController").AddComponent<BeatSaberDailyController>();
+            new GameObject("BeatSaberDailyController").AddComponent<BeatSaberDialyController>();
 
         }
 

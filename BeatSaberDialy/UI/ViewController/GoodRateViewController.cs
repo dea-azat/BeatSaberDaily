@@ -1,6 +1,6 @@
 ﻿using BeatSaberMarkupLanguage.ViewControllers;
 
-namespace BeatSaberDaily.UI.ViewController
+namespace BeatSaberDialy.UI.ViewController
 {
     public class GoodRateViewController : BSMLResourceViewController
     {

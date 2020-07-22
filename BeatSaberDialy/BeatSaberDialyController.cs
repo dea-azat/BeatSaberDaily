@@ -11,13 +11,13 @@ using BS_Utils.Utilities;
 
 using BeatSaberMarkupLanguage;
 using BeatSaberMarkupLanguage.FloatingScreen;
-using BeatSaberDaily.UI.ViewController;
-using BeatSaberDaily.Util;
+using BeatSaberDialy.UI.ViewController;
+using BeatSaberDialy.Util;
 using UnityEngine.UI;
 
 using UnityEngine.SceneManagement;
 
-namespace BeatSaberDaily
+namespace BeatSaberDialy
 {
     /// <summary>
     /// Monobehaviours (scripts) are added to GameObjects.
@@ -33,9 +33,9 @@ namespace BeatSaberDaily
         }
     }
 
-    public class BeatSaberDailyController : MonoBehaviour
+    public class BeatSaberDialyController : MonoBehaviour
     {
-        public static BeatSaberDailyController instance { get; private set; }
+        public static BeatSaberDialyController instance { get; private set; }
 
         static FloatingScreen floatingScreenForScore;
 
@@ -57,7 +57,7 @@ namespace BeatSaberDaily
             instance = this;
             Logger.log?.Debug($"{name}: Awake()");
 
-            DailyData.Init();
+            DialyData.Init();
             BSEvents.levelCleared += LevelClearEvent;
             BSEvents.levelFailed += LevelClearEvent;
             BSEvents.noteWasCut += HandleScoreControllerNoteWasCut;
@@ -76,12 +76,12 @@ namespace BeatSaberDaily
 
         private void HandleScoreControllerNoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplier)
         {
-            DailyData.NoteWasCut(noteData, noteCutInfo, multiplier);
+            DialyData.NoteWasCut(noteData, noteCutInfo, multiplier);
         }
 
         private void HandleScoreControllerNoteWasMissed(NoteData noteData, int multiplier)
         {
-            DailyData.NoteWasMissed(noteData, multiplier);
+            DialyData.NoteWasMissed(noteData, multiplier);
         }
 
         private void LevelClearEvent(StandardLevelScenesTransitionSetupDataSO data, LevelCompletionResults result)
@@ -94,20 +94,20 @@ namespace BeatSaberDaily
             {
                 var songDuration = _mainGameSceneSetupData?.GameplayCoreSceneSetupData?.difficultyBeatmap?.level?.beatmapLevelData?.audioClip?.length ?? -1f;
                 var songName = _mainGameSceneSetupData.GameplayCoreSceneSetupData.difficultyBeatmap.level.songName;
-                DailyData.LevelCleared(songName, songDuration);
+                DialyData.LevelCleared(songName, songDuration);
             }
 
             String filepath = "D:/BeatSaberMod/record.csv";
 
-            DailyData.WritePlayData(filepath);
+            DialyData.WritePlayData(filepath);
 
-            DailyData.Update();
+            DialyData.Update();
 
-            List<Vector2> goodGraph = DailyData.GetLastGoodRateGraphPoint();
+            List<Vector2> goodGraph = DialyData.GetLastGoodRateGraphPoint();
             Log.Write("LevelClearEvent goodGraph Count = " + goodGraph.Count.ToString());
 
             floatingScreenForScore.rootViewController.gameObject.SetActive(true);
-            floatingScreenForScore.GetComponent<GraphContainer>().Draw(DailyData.GetLastGoodRateGraphPoint());
+            floatingScreenForScore.GetComponent<GraphContainer>().Draw(DialyData.GetLastGoodRateGraphPoint());
         }
 
         private void SetGoodRateChart(ScenesTransitionSetupDataSO data)

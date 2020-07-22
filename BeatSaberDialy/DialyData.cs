@@ -8,9 +8,9 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.PlayerLoop;
 
-namespace BeatSaberDaily
+namespace BeatSaberDialy
 {
-    public static class DailyData
+    public static class DialyData
     {
         static List<PlayData> playData = new List<PlayData>();
 
