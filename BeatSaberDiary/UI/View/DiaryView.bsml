@@ -1,7 +1,9 @@
 ﻿<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'
     background='round-rect-panel'>
   <vertical>
-      <text id='today-scores' text='diary' rich-text='true' align='Center'></text>
+    <page-button event-click='scoreList#PageUp' direction='Up'></page-button>
+    <list id='scoreList' list-width ='100' expand-cell='true' select-cell='scoreSelect'></list>
+    <page-button event-click='scoreList#PageDown' direction='Down'></page-button>
   </vertical>
 
   <button on-click='press' text='Close'></button>

@@ -56,12 +56,12 @@ namespace BeatSaberDiary
             return lastPlayData.GetGoodRateGraphPoint();
         }
 
-        public static String GetAllTextData()
+        public static List<string> GetAllTextData()
         {
             //string date = DateTime.Now.ToString("yyyy_MM_dd_");
             string date = "2020_07_21_";
             string filepath = "D:/BeatSaberMod/" + date + "record.csv";
-            string text = "";
+            List<string> scoreData = new List<string>();
 
             StreamReader file = new StreamReader(filepath, Encoding.UTF8);
 
@@ -70,6 +70,7 @@ namespace BeatSaberDiary
             // To Be Section Data
             int goodCnt = 0;
             int notGoodCnt = 0;
+            string text = "";
 
             while (line != null)
             {
@@ -81,6 +82,8 @@ namespace BeatSaberDiary
                     if (goodCnt + notGoodCnt > 0)
                     {
                         text += " [GoodRate: " + ((float)goodCnt / (float)(goodCnt + notGoodCnt)) + "]\n";
+                        scoreData.Add(text);
+                        text = "";
                     }
                     text += "[Title: " + word[0] + "]";
                     goodCnt = notGoodCnt = 0;
@@ -96,8 +99,9 @@ namespace BeatSaberDiary
             }
 
             text += " [GoodRate: " + ((float)goodCnt / (float)(goodCnt + notGoodCnt)) + "]";
+            scoreData.Add(text);
 
-            return text;
+            return scoreData;
         }
     }
 
