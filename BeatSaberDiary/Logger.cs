@@ -1,6 +1,6 @@
 ﻿using IPALogger = IPA.Logging.Logger;
 
-namespace BeatSaberDialy
+namespace BeatSaberDiary
 {
     internal static class Logger
     {

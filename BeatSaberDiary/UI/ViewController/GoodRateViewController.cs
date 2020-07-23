@@ -1,9 +1,9 @@
 ﻿using BeatSaberMarkupLanguage.ViewControllers;
 
-namespace BeatSaberDialy.UI.ViewController
+namespace BeatSaberDiary.UI.ViewController
 {
     public class GoodRateViewController : BSMLResourceViewController
     {
-        public override string ResourceName => "BeatSaberDaily.UI.View.ChartView.bsml";
+        public override string ResourceName => "BeatSaberDiary.UI.View.ChartView.bsml";
     }
 }

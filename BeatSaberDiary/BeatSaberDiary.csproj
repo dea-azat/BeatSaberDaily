@@ -8,8 +8,8 @@
     <ProjectGuid>{55B0E245-C998-4966-8795-78F02BE68578}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BeatSaberDaily</RootNamespace>
-    <AssemblyName>BeatSaberDaily</AssemblyName>
+    <RootNamespace>BeatSaberDiary</RootNamespace>
+    <AssemblyName>BeatSaberDiary</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <DebugType>portable</DebugType>
@@ -111,14 +111,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BeatSaberDialyController.cs" />
-    <Compile Include="DialyData.cs" />
+    <Compile Include="BeatSaberDiaryController.cs" />
+    <Compile Include="DiaryData.cs" />
     <Compile Include="DrawGraph.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\ViewController\DiaryViewController.cs" />
+    <Compile Include="UI\ViewController\DiaryButtonController.cs" />
     <Compile Include="UI\ViewController\GoodRateViewController.cs" />
+    <Compile Include="Util\ReflectionUtil.cs" />
     <Compile Include="Util\TaskManager.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -129,6 +132,8 @@
     <None Include=".gitignore" />
     <EmbeddedResource Include="UI\View\ChartView.bsml" />
     <EmbeddedResource Include="UI\linegraph" />
+    <EmbeddedResource Include="UI\View\DiaryButton.bsml" />
+    <EmbeddedResource Include="UI\View\DiaryView.bsml" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -8,9 +8,9 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.PlayerLoop;
 
-namespace BeatSaberDialy
+namespace BeatSaberDiary
 {
-    public static class DialyData
+    public static class DiaryData
     {
         static List<PlayData> playData = new List<PlayData>();
 
@@ -55,6 +55,50 @@ namespace BeatSaberDialy
         {
             return lastPlayData.GetGoodRateGraphPoint();
         }
+
+        public static String GetAllTextData()
+        {
+            //string date = DateTime.Now.ToString("yyyy_MM_dd_");
+            string date = "2020_07_21_";
+            string filepath = "D:/BeatSaberMod/" + date + "record.csv";
+            string text = "";
+
+            StreamReader file = new StreamReader(filepath, Encoding.UTF8);
+
+            string line = "";
+            line = file.ReadLine();
+            // To Be Section Data
+            int goodCnt = 0;
+            int notGoodCnt = 0;
+
+            while (line != null)
+            {
+                Debug.Log(line);
+                string[] word = line.Split(","[0]);
+
+                if (word.Length == 1)
+                {
+                    if (goodCnt + notGoodCnt > 0)
+                    {
+                        text += " [GoodRate: " + ((float)goodCnt / (float)(goodCnt + notGoodCnt)) + "]\n";
+                    }
+                    text += "[Title: " + word[0] + "]";
+                    goodCnt = notGoodCnt = 0;
+                }
+                else
+                {
+                    goodCnt += int.Parse(word[2]);
+                    notGoodCnt += int.Parse(word[3]);
+                    notGoodCnt += int.Parse(word[4]);
+                }
+
+                line = file.ReadLine();
+            }
+
+            text += " [GoodRate: " + ((float)goodCnt / (float)(goodCnt + notGoodCnt)) + "]";
+
+            return text;
+        }
     }
 
     public class SectionData
@@ -95,10 +139,10 @@ namespace BeatSaberDialy
 
         public String Data2Text()
         {
-            Logger.log.Error("[     time ] = " + startTime.ToString());
-            Logger.log.Error("[ good cut ] = " + goodcut.ToString());
-            Logger.log.Error("[  bad cut ] = " + badcut.ToString());
-            Logger.log.Error("[   missed ] = " + missed.ToString());
+            Log.Write("[     time ] = " + startTime.ToString());
+            Log.Write("[ good cut ] = " + goodcut.ToString());
+            Log.Write("[  bad cut ] = " + badcut.ToString());
+            Log.Write("[   missed ] = " + missed.ToString());
             String txt = string.Concat(new string[]
             {
                 startTime.ToString(),

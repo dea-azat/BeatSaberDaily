@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace BeatSaberDialy
+namespace BeatSaberDiary
 {
     class GraphContainer : MonoBehaviour
     {
@@ -19,7 +19,7 @@ namespace BeatSaberDialy
         private void Awake()
         {
             var assembly = Assembly.GetExecutingAssembly();
-            using (var stream = assembly.GetManifestResourceStream("BeatSaberDaily.UI.linegraph"))
+            using (var stream = assembly.GetManifestResourceStream("BeatSaberDiary.UI.linegraph"))
             assetBundle = AssetBundle.LoadFromStream(stream);
 
             var prefab = assetBundle.LoadAsset<GameObject>("LineGraph");
@@ -30,7 +30,7 @@ namespace BeatSaberDialy
             winGraph.circleSprite = sprite;
             winGraph.transform.localScale /= 10;
 
-            List<Vector2> goodGraph = DialyData.GetLastGoodRateGraphPoint();
+            List<Vector2> goodGraph = DiaryData.GetLastGoodRateGraphPoint();
             Log.Write("GraphContainer goodGraph Count = " + goodGraph.Count.ToString());
             if ( goodGraph.Count > 0)
             {

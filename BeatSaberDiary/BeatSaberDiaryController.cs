@@ -11,13 +11,16 @@ using BS_Utils.Utilities;
 
 using BeatSaberMarkupLanguage;
 using BeatSaberMarkupLanguage.FloatingScreen;
-using BeatSaberDialy.UI.ViewController;
-using BeatSaberDialy.Util;
+using BeatSaberDiary.UI.ViewController;
+using BeatSaberDiary.Util;
 using UnityEngine.UI;
 
 using UnityEngine.SceneManagement;
 
-namespace BeatSaberDialy
+using HMUI;
+using BeatSaberMarkupLanguage.MenuButtons;
+
+namespace BeatSaberDiary
 {
     /// <summary>
     /// Monobehaviours (scripts) are added to GameObjects.
@@ -33,9 +36,9 @@ namespace BeatSaberDialy
         }
     }
 
-    public class BeatSaberDialyController : MonoBehaviour
+    public class BeatSaberDiaryController : MonoBehaviour
     {
-        public static BeatSaberDialyController instance { get; private set; }
+        public static BeatSaberDiaryController instance { get; private set; }
 
         static FloatingScreen floatingScreenForScore;
 
@@ -57,13 +60,14 @@ namespace BeatSaberDialy
             instance = this;
             Logger.log?.Debug($"{name}: Awake()");
 
-            DialyData.Init();
+            DiaryData.Init();
             BSEvents.levelCleared += LevelClearEvent;
             BSEvents.levelFailed += LevelClearEvent;
             BSEvents.noteWasCut += HandleScoreControllerNoteWasCut;
             BSEvents.noteWasMissed += HandleScoreControllerNoteWasMissed;
 
-            BSEvents.lateMenuSceneLoadedFresh += SetGoodRateChart;
+            BSEvents.menuSceneActive += SetGoodRateChart;
+            BSEvents.menuSceneActive += SetDiaryButton;
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
             Log.Write("Stats OnLoad");
@@ -76,12 +80,12 @@ namespace BeatSaberDialy
 
         private void HandleScoreControllerNoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplier)
         {
-            DialyData.NoteWasCut(noteData, noteCutInfo, multiplier);
+            DiaryData.NoteWasCut(noteData, noteCutInfo, multiplier);
         }
 
         private void HandleScoreControllerNoteWasMissed(NoteData noteData, int multiplier)
         {
-            DialyData.NoteWasMissed(noteData, multiplier);
+            DiaryData.NoteWasMissed(noteData, multiplier);
         }
 
         private void LevelClearEvent(StandardLevelScenesTransitionSetupDataSO data, LevelCompletionResults result)
@@ -94,28 +98,29 @@ namespace BeatSaberDialy
             {
                 var songDuration = _mainGameSceneSetupData?.GameplayCoreSceneSetupData?.difficultyBeatmap?.level?.beatmapLevelData?.audioClip?.length ?? -1f;
                 var songName = _mainGameSceneSetupData.GameplayCoreSceneSetupData.difficultyBeatmap.level.songName;
-                DialyData.LevelCleared(songName, songDuration);
+                DiaryData.LevelCleared(songName, songDuration);
             }
 
-            String filepath = "D:/BeatSaberMod/record.csv";
+            string date = DateTime.Now.ToString("yyyy_MM_dd_");
+            String filepath = "D:/BeatSaberMod/" + date + "record.csv";
 
-            DialyData.WritePlayData(filepath);
+            DiaryData.WritePlayData(filepath);
 
-            DialyData.Update();
+            DiaryData.Update();
 
-            List<Vector2> goodGraph = DialyData.GetLastGoodRateGraphPoint();
+            List<Vector2> goodGraph = DiaryData.GetLastGoodRateGraphPoint();
             Log.Write("LevelClearEvent goodGraph Count = " + goodGraph.Count.ToString());
 
             floatingScreenForScore.rootViewController.gameObject.SetActive(true);
-            floatingScreenForScore.GetComponent<GraphContainer>().Draw(DialyData.GetLastGoodRateGraphPoint());
+            floatingScreenForScore.GetComponent<GraphContainer>().Draw(DiaryData.GetLastGoodRateGraphPoint());
         }
 
-        private void SetGoodRateChart(ScenesTransitionSetupDataSO data)
+        private void SetGoodRateChart()
         {
-            new UnityTask(SetFloatingDisplay());
+            //new UnityTask(SetGoodRateChart_Process());
         }
 
-        private static IEnumerator SetFloatingDisplay()
+        private static IEnumerator SetGoodRateChart_Process()
         {
             yield return new WaitForEndOfFrame();
 
@@ -128,7 +133,6 @@ namespace BeatSaberDialy
             var rot = Quaternion.Euler(ChartStandardLevelRotation);
             floatingScreenForScore = FloatingScreen.CreateFloatingScreen(new Vector2(105, 65), false, pos, rot);
 
-
             floatingScreenForScore.SetRootViewController(BeatSaberUI.CreateViewController<GoodRateViewController>(), true);
 
             Image image = floatingScreenForScore.GetComponent<Image>();
@@ -137,6 +141,26 @@ namespace BeatSaberDialy
             floatingScreenForScore.gameObject.AddComponent<GraphContainer>();
 
             floatingScreenForScore.rootViewController.gameObject.SetActive(false);
+        }
+
+        private void SetDiaryButton()
+        {
+            new UnityTask(SetDiaryButton_Process());
+        }
+
+        private static IEnumerator SetDiaryButton_Process()
+        {
+            yield return new WaitForEndOfFrame();
+
+            Log.Write("SetDiaryButton Start");
+
+            var screenSystem = Resources.FindObjectsOfTypeAll<ScreenSystem>()[0];
+            Vector3 pos = screenSystem.rightScreen.gameObject.transform.position; 
+            Quaternion rot = screenSystem.rightScreen.gameObject.transform.rotation;
+
+            floatingScreenForScore = FloatingScreen.CreateFloatingScreen(new Vector2(40, 15), false, pos + new Vector3(1.65f, -0.82f, 0f), rot);
+
+            floatingScreenForScore.SetRootViewController(BeatSaberUI.CreateViewController<DiaryButtonController>(), true);
         }
 
         /// <summary>
