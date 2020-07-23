@@ -117,7 +117,7 @@ namespace BeatSaberDiary
 
         private void SetGoodRateChart()
         {
-            //new UnityTask(SetGoodRateChart_Process());
+            new UnityTask(SetGoodRateChart_Process());
         }
 
         private static IEnumerator SetGoodRateChart_Process()
@@ -141,6 +141,13 @@ namespace BeatSaberDiary
             floatingScreenForScore.gameObject.AddComponent<GraphContainer>();
 
             floatingScreenForScore.rootViewController.gameObject.SetActive(false);
+        }
+
+        public void SetActiveGoodRateChart(bool onoff, Transform transform)
+        {
+            floatingScreenForScore.rootViewController.gameObject.SetActive(onoff);
+            floatingScreenForScore.rootViewController.transform.position = transform.position;
+            floatingScreenForScore.rootViewController.transform.rotation = transform.rotation;
         }
 
         private void SetDiaryButton()

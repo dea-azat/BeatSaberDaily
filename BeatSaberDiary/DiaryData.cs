@@ -30,6 +30,11 @@ namespace BeatSaberDiary
             nowPlayData = new PlayData();
         }
 
+        static public void UpdateGoodRate(PlayData data)
+        {
+            lastPlayData = data;
+        }
+
         // PlayData Interface
         public static void NoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplier)
         {
@@ -58,8 +63,8 @@ namespace BeatSaberDiary
 
         public static List<string> GetAllTextData()
         {
-            //string date = DateTime.Now.ToString("yyyy_MM_dd_");
-            string date = "2020_07_21_";
+            string date = DateTime.Now.ToString("yyyy_MM_dd_");
+            //string date = "2020_07_21_";
             string filepath = "D:/BeatSaberMod/" + date + "record.csv";
             List<string> scoreData = new List<string>();
 
@@ -103,6 +108,51 @@ namespace BeatSaberDiary
 
             return scoreData;
         }
+
+        public static List<PlayData> GetAllPlayData()
+        {
+            string date = DateTime.Now.ToString("yyyy_MM_dd_");
+            //string date = "2020_07_21_";
+            string filepath = "D:/BeatSaberMod/" + date + "record.csv";
+            List<PlayData> scoreData = new List<PlayData>();
+
+            StreamReader file = new StreamReader(filepath, Encoding.UTF8);
+
+            string line = "";
+            line = file.ReadLine();
+            PlayData data = new PlayData();
+
+            while (line != null)
+            {
+                Debug.Log(line);
+                string[] word = line.Split(","[0]);
+
+                if (word.Length == 1)
+                {
+                    if (data.GetTotalCnt() > 0)
+                    {
+                        scoreData.Add(data);
+                    }
+                    data = new PlayData();
+                    data.SetSongName(word[0]);
+                }
+                else
+                {
+                    float start = float.Parse(word[0]);
+                    float end = float.Parse(word[1]);
+                    int goodCnt = int.Parse(word[2]);
+                    int badCnt = int.Parse(word[3]);
+                    int missedCnt = int.Parse(word[4]);
+                    data.Add(new SectionData(start, end, goodCnt, badCnt, missedCnt));
+                }
+
+                line = file.ReadLine();
+            }
+
+            scoreData.Add(data);
+
+            return scoreData;
+        }
     }
 
     public class SectionData
@@ -120,6 +170,21 @@ namespace BeatSaberDiary
 
             goodcut = badcut = missed = 0;
         }
+
+        public SectionData(float _start, float _end, int _good, int _bad, int _miss)
+        {
+            startTime = _start;
+            endTime = _end;
+
+            goodcut = _good;
+            badcut = _bad;
+            missed = _miss;
+        }
+
+        public int GetGoodCut() { return goodcut; }
+        public int GetBadCut() { return badcut; }
+        public int GetMissed() { return missed; }
+        public int GetTotalCnt() { return GetGoodCut() + GetBadCut() + GetMissed(); }
 
         public void InclementGoodCut()
         {
@@ -168,7 +233,9 @@ namespace BeatSaberDiary
             Vector2 vec = new Vector2();
 
             vec.x = endTime;
-            vec.y = (float)goodcut / (float)(goodcut + badcut + missed);
+            if (goodcut + badcut + missed > 0)
+                vec.y = (float)goodcut / (float)(goodcut + badcut + missed);
+            else vec.y = -1;
 
             return vec;
         }
@@ -177,12 +244,20 @@ namespace BeatSaberDiary
     public class PlayData
     {
         String songName;
+        DateTime date; // To be input
 
         List<SectionData> sectionData = new List<SectionData>();
         
         int cutCount = 0;
 
         const int COUNT_MAX = 20; //Must to be DI
+
+        public void SetSongName(string _songName)
+        {
+            songName = _songName;
+        }
+
+        public string GetSongName() { return songName; }
 
         // NoteCut
         private void UpdateSectionData(float time)
@@ -265,6 +340,40 @@ namespace BeatSaberDiary
             }
 
             return vec;
+        }
+
+        public float GetTotalGoodRate()
+        {
+            return (float)GetGoodCut() / (float)GetTotalCnt();
+        }
+
+        public int GetGoodCut()
+        {
+            int cnt = 0;
+
+            foreach (SectionData sd in sectionData)
+            {
+                cnt += sd.GetGoodCut();
+            }
+
+            return cnt;
+        }
+
+        public int GetTotalCnt()
+        {
+            int cnt = 0;
+            
+            foreach (SectionData sd in sectionData)
+            {
+                cnt += sd.GetTotalCnt();
+            }
+
+            return cnt;
+        }
+
+        public void Add(SectionData data)
+        {
+            sectionData.Add(data);
         }
     }
 }
