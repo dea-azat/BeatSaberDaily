@@ -57,6 +57,7 @@ namespace BeatSaberDiary.UI.ViewController
 
             var createdController = Resources.FindObjectsOfTypeAll<DiaryViewController>()[0];
             createdController.parent = floatingScreenForDiary;
+            createdController.diaryController = Resources.FindObjectsOfTypeAll<BeatSaberDiaryController>()[0];
         }
 
     }

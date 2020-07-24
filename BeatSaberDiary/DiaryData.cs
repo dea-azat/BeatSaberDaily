@@ -51,9 +51,9 @@ namespace BeatSaberDiary
             nowPlayData.WritePlayData(filepath);
         }
 
-        public static void LevelCleared(String songName, float songDuration)
+        public static void LevelCleared(String songName, float songDuration, int noteCount)
         {
-            nowPlayData.LevelCleared(songName, songDuration);
+            nowPlayData.LevelCleared(songName, songDuration, noteCount);
         }
 
         public static List<Vector2> GetLastGoodRateGraphPoint()
@@ -322,10 +322,18 @@ namespace BeatSaberDiary
             file.Close();
         }
 
-        public void LevelCleared(String _songName, float songDuration)
+        public void LevelCleared(String _songName, float songDuration, int noteCount)
         {
             songName = _songName;
             sectionData[cutCount / COUNT_MAX].SetEndTime(songDuration);
+
+            if (GetTotalCnt() < noteCount)
+            {
+                for (int i = 0; i < noteCount - GetTotalCnt(); i++)
+                {
+                    sectionData[cutCount / COUNT_MAX].InclementMissed();
+                }
+            }
         }
 
         public List<Vector2> GetGoodRateGraphPoint()

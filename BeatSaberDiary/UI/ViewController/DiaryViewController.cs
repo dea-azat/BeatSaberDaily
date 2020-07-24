@@ -10,6 +10,7 @@ using BeatSaberMarkupLanguage.FloatingScreen;
 using IPA.Config.Data;
 
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace BeatSaberDiary.UI.ViewController
 
@@ -46,7 +47,7 @@ namespace BeatSaberDiary.UI.ViewController
         {
             BeatSaberDiary.Log.Write("scoreSelect " + index);
             BeatSaberDiary.DiaryData.UpdateGoodRate(diaryPlayData[index]);
-            diaryController.SetActiveGoodRateChart(true, parent.transform);
+            diaryController.SetActiveGoodRateChart(true, transform);
         }
 
         [UIAction("press")]
@@ -54,6 +55,7 @@ namespace BeatSaberDiary.UI.ViewController
         {
             if (parent != null)
             {
+                diaryController.SetActiveGoodRateChart(false, transform);
                 Destroy(parent.gameObject);
             }
         }

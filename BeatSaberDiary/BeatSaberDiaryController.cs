@@ -41,6 +41,7 @@ namespace BeatSaberDiary
         public static BeatSaberDiaryController instance { get; private set; }
 
         static FloatingScreen floatingScreenForScore;
+        static FloatingScreen floatingScreenForDiaryButton;
 
         #region Monobehaviour Messages
         /// <summary>
@@ -66,8 +67,9 @@ namespace BeatSaberDiary
             BSEvents.noteWasCut += HandleScoreControllerNoteWasCut;
             BSEvents.noteWasMissed += HandleScoreControllerNoteWasMissed;
 
-            BSEvents.menuSceneActive += SetGoodRateChart;
-            BSEvents.menuSceneActive += SetDiaryButton;
+            /* call only one time */
+            BSEvents.lateMenuSceneLoadedFresh += SetGoodRateChart;
+            BSEvents.lateMenuSceneLoadedFresh += SetDiaryButton;
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
             Log.Write("Stats OnLoad");
@@ -98,7 +100,8 @@ namespace BeatSaberDiary
             {
                 var songDuration = _mainGameSceneSetupData?.GameplayCoreSceneSetupData?.difficultyBeatmap?.level?.beatmapLevelData?.audioClip?.length ?? -1f;
                 var songName = _mainGameSceneSetupData.GameplayCoreSceneSetupData.difficultyBeatmap.level.songName;
-                DiaryData.LevelCleared(songName, songDuration);
+                
+                DiaryData.LevelCleared(songName, songDuration, _beatmapData.notesCount);
             }
 
             string date = DateTime.Now.ToString("yyyy_MM_dd_");
@@ -112,10 +115,11 @@ namespace BeatSaberDiary
             Log.Write("LevelClearEvent goodGraph Count = " + goodGraph.Count.ToString());
 
             floatingScreenForScore.rootViewController.gameObject.SetActive(true);
+            floatingScreenForScore.GetComponent<GraphContainer>().gameObject.SetActive(true);
             floatingScreenForScore.GetComponent<GraphContainer>().Draw(DiaryData.GetLastGoodRateGraphPoint());
         }
 
-        private void SetGoodRateChart()
+        private void SetGoodRateChart(ScenesTransitionSetupDataSO data)
         {
             new UnityTask(SetGoodRateChart_Process());
         }
@@ -138,19 +142,38 @@ namespace BeatSaberDiary
             Image image = floatingScreenForScore.GetComponent<Image>();
             image.enabled = false;
 
-            floatingScreenForScore.gameObject.AddComponent<GraphContainer>();
+            GraphContainer graph = floatingScreenForScore.gameObject.AddComponent<GraphContainer>();
 
             floatingScreenForScore.rootViewController.gameObject.SetActive(false);
+            graph.gameObject.SetActive(false);
         }
 
         public void SetActiveGoodRateChart(bool onoff, Transform transform)
         {
+            if (floatingScreenForScore == null) { Log.Write("floatingScreenForScore is Null"); return; }
+
+            if (onoff)
+            {
+                floatingScreenForScore.transform.position = transform.position + new Vector3(0f, 0f, -2.2f);
+                floatingScreenForScore.transform.rotation = Quaternion.Euler(new Vector3(0, 105, 0));
+            }
+            else
+            {
+                Vector3 ChartStandardLevelPosition = new Vector3(0, 0.25f, 2.25f); /* Original: 0, -0.4, 2.25 */
+                Vector3 ChartStandardLevelRotation = new Vector3(35, 0, 0);
+                var pos = ChartStandardLevelPosition;
+                var rot = Quaternion.Euler(ChartStandardLevelRotation);
+
+                floatingScreenForScore.transform.position = pos;
+                floatingScreenForScore.transform.rotation = rot;
+            }
+
             floatingScreenForScore.rootViewController.gameObject.SetActive(onoff);
-            floatingScreenForScore.rootViewController.transform.position = transform.position;
-            floatingScreenForScore.rootViewController.transform.rotation = transform.rotation;
+            floatingScreenForScore.GetComponent<GraphContainer>().gameObject.SetActive(onoff);
+            floatingScreenForScore.GetComponent<GraphContainer>().Draw(DiaryData.GetLastGoodRateGraphPoint());
         }
 
-        private void SetDiaryButton()
+        private void SetDiaryButton(ScenesTransitionSetupDataSO data)
         {
             new UnityTask(SetDiaryButton_Process());
         }
@@ -165,9 +188,9 @@ namespace BeatSaberDiary
             Vector3 pos = screenSystem.rightScreen.gameObject.transform.position; 
             Quaternion rot = screenSystem.rightScreen.gameObject.transform.rotation;
 
-            floatingScreenForScore = FloatingScreen.CreateFloatingScreen(new Vector2(40, 15), false, pos + new Vector3(1.65f, -0.82f, 0f), rot);
+            floatingScreenForDiaryButton = FloatingScreen.CreateFloatingScreen(new Vector2(40, 15), false, pos + new Vector3(1.65f, -0.82f, 0f), rot);
 
-            floatingScreenForScore.SetRootViewController(BeatSaberUI.CreateViewController<DiaryButtonController>(), true);
+            floatingScreenForDiaryButton.SetRootViewController(BeatSaberUI.CreateViewController<DiaryButtonController>(), true);
         }
 
         /// <summary>
@@ -219,6 +242,6 @@ namespace BeatSaberDiary
             instance = null; // This MonoBehaviour is being destroyed, so set the static instance property to null.
 
         }
-        #endregion
+#endregion
     }
 }

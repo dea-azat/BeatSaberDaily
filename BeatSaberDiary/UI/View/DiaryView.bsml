@@ -4,7 +4,6 @@
     <page-button event-click='scoreList#PageUp' direction='Up'></page-button>
     <list id='scoreList' list-width ='100' expand-cell='true' select-cell='scoreSelect'></list>
     <page-button event-click='scoreList#PageDown' direction='Down'></page-button>
-  </vertical>
-
-  <button on-click='press' text='Close'></button>
+    <button on-click='press' text='Close'></button>
+  </vertical>  
 </bg>
